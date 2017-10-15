@@ -19,7 +19,7 @@ matrix:
         - CROSS_TRIPLE=i686-w64-mingw32
         # Unfortunately multiarch/crossbuild doesn't come with 'zip',
         # so we build a tgz archive in the container, and re-package it later in the script.
-        - EXTRA_ARGS='-e ARCHIVE_CMD="tar czvf" -e ARCHIVE_EXTENSION="tar.gz"'
+        - EXTRA_ARGS='-e ARCHIVE_CMD=tar\ czvf -e ARCHIVE_EXTENSION=tar.gz'
       - env:
         - TARGET_OS=osx
         - CROSS_TRIPLE=x86_64-apple-darwin
@@ -27,6 +27,8 @@ matrix:
 script:
   - export VER=$(git describe)
   - echo ${VER}
+
+  - echo ${EXTRA_ARGS}
 
   - >-
     docker run --rm
