@@ -1,14 +1,45 @@
-language: cpp
+sudo: required
+services:
+  - docker
+
 matrix:
     include:
-        - os: linux
-          sudo: false
-          compiler: gcc
-          env: PLATFORM=linux64
-        - os: osx
-          compiler: clang
-          env: PLATFORM=osx
-script: make dist
+      - env:
+        - TARGET_OS=linux64
+        - CROSS_TRIPLE=x86_64-linux-gnu
+      - env:
+        - TARGET_OS=linux32
+        - CROSS_TRIPLE=x86_64-linux-gnu
+      - env:
+        - TARGET_OS=linux-armhf
+        - CROSS_TRIPLE=x86_64-linux-gnu
+      - env:
+        - TARGET_OS=win32
+        - CROSS_TRIPLE=i686-w64-mingw32
+        # Unfortunately multiarch/crossbuild doesn't come with 'zip',
+        # so we build a tgz archive in the container, and re-package it later in the script.
+        - EXTRA_ARGS="-e ARCHIVE_CMD=\"tar czvf\" -e ARCHIVE_EXTENSION=\"tar.gz\""
+      - env:
+        - TARGET_OS=osx
+        - CROSS_TRIPLE=x86_64-apple-darwin
+
+script:
+  - |
+    docker run --rm
+    -v $PWD:/workdir
+    -e TARGET_OS=${TARGET_OS}
+    -e CROSS_TRIPLE=${CROSS_TRIPLE}
+    ${EXTRA_ARGS}
+    multiarch/crossbuild
+    make clean dist
+
+  # for windows, prepare zip archive
+  - export VER=$(git describe)
+  - |
+    test $TARGET_OS = "win32"
+    && rm esptool-$(VER).tar.gz
+    && zip -r esptool-$(VER)-win32.zip esptool-$(VER)-win32/
+
 notifications:
   email:
     recipients:
@@ -18,10 +49,10 @@ notifications:
 deploy:
   provider: releases
   skip_cleanup: true
+  file_glob: true
   api_key:
     secure: Lg/Po5YFRcnrpqjgrdHcyGdxhRe8iB01Og8hvTmhhDxew1mpVHCfcZxO1VMpBxWnLS3ud4UdMjC3RBpcCWTvt0w9g35Vt9cj7XgnBEBHrBBA5DL+E5cAj/5Sf63pztc85m/kB0WODNG2NQiTpjonszrFHpmWdmXp3mqP95mZVBw=
-  file: esptool-$TRAVIS_TAG-$PLATFORM.tar.gz
+  file: esptool-$TRAVIS_TAG-$TARGET_OS.*
   on:
     repo: igrr/esptool-ck
     tags: true
-    all_branches: true
