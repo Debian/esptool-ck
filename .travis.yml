@@ -38,10 +38,10 @@ script:
     make clean dist
 
   # for windows, prepare zip archive
-  - >-
-    test $TARGET_OS = "win32"
-    && rm esptool-${VER}.tar.gz
-    && zip -r esptool-${VER}-win32.zip esptool-${VER}-win32/
+  - |
+    if [ $TARGET_OS = "win32" ]; then
+      rm esptool-${VER}.tar.gz && zip -r esptool-${VER}-win32.zip esptool-${VER}-win32/
+    fi
 
   # Diagnostics
   - file esptool
