@@ -40,7 +40,8 @@ script:
   # for windows, prepare zip archive
   - |
     if [ $TARGET_OS = "win32" ]; then
-      rm esptool-${VER}-win32.tar.gz && zip -r esptool-${VER}-win32.zip esptool-${VER}-win32/
+      rm -f esptool-${VER}-win32.tar.gz
+      zip -r esptool-${VER}-win32.zip esptool-${VER}-win32/
     fi
 
   # Diagnostics
