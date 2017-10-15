@@ -25,6 +25,9 @@ matrix:
         - CROSS_TRIPLE=x86_64-apple-darwin
 
 script:
+  - export VER=$(git describe)
+  - echo ${VER}
+
   - >-
     docker run --rm
     -v $PWD:/workdir
@@ -35,12 +38,14 @@ script:
     make clean dist
 
   # for windows, prepare zip archive
-  - export VER=$(git describe)
-  - |
-    if [ $TARGET_OS = "win32" ]; then
-      rm esptool-$(VER).tar.gz
-      zip -r esptool-$(VER)-win32.zip esptool-$(VER)-win32/
-    fi
+  - >-
+    test $TARGET_OS = "win32"
+    && rm esptool-${VER}.tar.gz
+    && zip -r esptool-${VER}-win32.zip esptool-${VER}-win32/
+
+  # Diagnostics
+  - file esptool
+  - ls -l esptool-${VER}-${TARGET_OS}
 
 notifications:
   email:
