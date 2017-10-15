@@ -1,3 +1,4 @@
+language: c
 sudo: required
 services:
   - docker
@@ -24,14 +25,14 @@ matrix:
         - CROSS_TRIPLE=x86_64-apple-darwin
 
 script:
-  - >
+  - >-
     docker run --rm
-        -v $PWD:/workdir
-        -e TARGET_OS=${TARGET_OS}
-        -e CROSS_TRIPLE=${CROSS_TRIPLE}
-        ${EXTRA_ARGS}
-      multiarch/crossbuild
-      make clean dist
+    -v $PWD:/workdir
+    -e TARGET_OS=${TARGET_OS}
+    -e CROSS_TRIPLE=${CROSS_TRIPLE}
+    ${EXTRA_ARGS}
+    multiarch/crossbuild
+    make clean dist
 
   # for windows, prepare zip archive
   - export VER=$(git describe)
