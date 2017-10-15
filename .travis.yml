@@ -28,8 +28,6 @@ script:
   - export VER=$(git describe)
   - echo ${VER}
 
-  - echo ${EXTRA_ARGS}
-
   - >-
     docker run --rm
     -v $PWD:/workdir
@@ -42,11 +40,12 @@ script:
   # for windows, prepare zip archive
   - |
     if [ $TARGET_OS = "win32" ]; then
-      rm esptool-${VER}.tar.gz && zip -r esptool-${VER}-win32.zip esptool-${VER}-win32/
+      rm esptool-${VER}-win32.tar.gz && zip -r esptool-${VER}-win32.zip esptool-${VER}-win32/
     fi
 
   # Diagnostics
-  - file esptool
+  - file esptool-${VER}-${TARGET_OS}/*
+  - ls -l file esptool-${VER}-${TARGET_OS}/*
   - ls -l esptool-${VER}-${TARGET_OS}.*
 
 notifications:
@@ -66,16 +65,3 @@ deploy:
   on:
     repo: igrr/esptool-ck
     tags: true
-
-# Docker image caching/loading
-before_install:
-  - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
-
-before_cache:
-  - >
-    mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
-    | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
-
-cache:
-  directories:
-    - $HOME/docker
