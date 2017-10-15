@@ -19,7 +19,7 @@ matrix:
         - CROSS_TRIPLE=i686-w64-mingw32
         # Unfortunately multiarch/crossbuild doesn't come with 'zip',
         # so we build a tgz archive in the container, and re-package it later in the script.
-        - EXTRA_ARGS='-e ARCHIVE_CMD=tar\ czvf -e ARCHIVE_EXTENSION=tar.gz'
+        - EXTRA_ARGS='-e ARCHIVE=tar'
       - env:
         - TARGET_OS=osx
         - CROSS_TRIPLE=x86_64-apple-darwin
@@ -55,6 +55,7 @@ notifications:
     - igrokhotkov@gmail.com
     on_success: change
     on_failure: change
+
 deploy:
   provider: releases
   skip_cleanup: true
@@ -65,3 +66,16 @@ deploy:
   on:
     repo: igrr/esptool-ck
     tags: true
+
+# Docker image caching/loading
+before_install:
+  - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
+
+before_cache:
+  - >
+    mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
+    | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
+
+cache:
+  directories:
+    - $HOME/docker

@@ -27,13 +27,11 @@ endif # TARGET_OS
 
 # OS-specific settings and build flags
 ifeq ($(TARGET_OS),win32)
-	ARCHIVE_CMD ?= zip -r
-	ARCHIVE_EXTENSION ?= zip
+	ARCHIVE ?= zip
 	TARGET := esptool.exe
-	TARGET_LDFLAGS	= -Wl,-static -static-libgcc
+	TARGET_LDFLAGS = -Wl,-static -static-libgcc
 else
-	ARCHIVE_CMD ?= tar czf
-	ARCHIVE_EXTENSION ?= tar.gz
+	ARCHIVE ?= tar
 	TARGET := esptool
 endif
 
@@ -43,6 +41,15 @@ ifeq ($(TARGET_OS),osx)
 	TARGET_LDFLAGS  = -mmacosx-version-min=10.6 -arch i386 -arch x86_64
 endif
 
+# Packaging into archive (for 'dist' target)
+ifeq ($(ARCHIVE), zip)
+	ARCHIVE_CMD := zip -r
+	ARCHIVE_EXTENSION := zip
+endif
+ifeq ($(ARCHIVE), tar)
+	ARCHIVE_CMD := tar czf
+	ARCHIVE_EXTENSION := tar.gz
+endif
 
 VERSION ?= $(shell git describe --always)
 
